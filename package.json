@@ -1,0 +1,27 @@
+{
+  "name": "@schedulifyx/mcp-bridge",
+  "version": "0.1.0",
+  "description": "Local MCP bridge that uploads images and videos to SchedulifyX from disk, without routing bytes through the model's context.",
+  "type": "module",
+  "bin": {
+    "schedulifyx-mcp-bridge": "src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "schedulifyx",
+    "social-media",
+    "upload"
+  ],
+  "license": "MIT"
+}

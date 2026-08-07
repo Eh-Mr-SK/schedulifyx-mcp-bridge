@@ -1,0 +1,71 @@
+{
+  "manifest_version": "0.3",
+  "name": "schedulifyx-bridge",
+  "display_name": "SchedulifyX Local Uploads",
+  "version": "0.1.0",
+  "description": "Upload images and videos to SchedulifyX straight from your own folders, without the file passing through the AI's context window.",
+  "long_description": "MCP tool calls are JSON carried in the model's context window, so file bytes cannot travel through MCP — a 700KB image is roughly 240,000 tokens once base64-encoded, which exhausts the context before the call is even sent. This bridge runs on your machine, so it can read a file you point it at and upload the bytes directly to SchedulifyX. Only the path and the resulting media ID reach the assistant.\n\nUse it after an image or video generator writes to disk: ask the assistant to stage the newest file in that folder, then schedule a post with the media ID it returns. No browser step, no copying base64.\n\nThe bridge can only read inside the folders you choose below, and can only upload to SchedulifyX using your own token.",
+  "author": {
+    "name": "SchedulifyX",
+    "url": "https://schedulifyx.com"
+  },
+  "homepage": "https://schedulifyx.com/mcp-connect",
+  "documentation": "https://github.com/Eh-Mr-SK/schedulifyx-mcp-bridge#readme",
+  "support": "https://github.com/Eh-Mr-SK/schedulifyx-mcp-bridge/issues",
+  "license": "MIT",
+  "keywords": [
+    "schedulifyx",
+    "social-media",
+    "upload",
+    "media",
+    "scheduling"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "src/index.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/src/index.mjs"],
+      "env": {
+        "SCHEDULIFYX_TOKEN": "${user_config.token}",
+        "SCHEDULIFYX_ALLOWED_DIRS": "${user_config.allowed_directories}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "stage_file",
+      "description": "Upload one local image or video and return its media ID."
+    },
+    {
+      "name": "stage_latest",
+      "description": "Upload the newest file in a folder — use straight after a generator writes its output."
+    },
+    {
+      "name": "stage_url",
+      "description": "Hand a public URL to SchedulifyX to fetch server-side."
+    }
+  ],
+  "user_config": {
+    "token": {
+      "type": "string",
+      "title": "SchedulifyX token",
+      "description": "Create one at schedulifyx.com/mcp-connect and paste it here. Use the same token as your SchedulifyX connection — the bridge inherits whatever brand and account limits you set on it.",
+      "sensitive": true,
+      "required": true
+    },
+    "allowed_directories": {
+      "type": "directory",
+      "title": "Folders the bridge may read",
+      "description": "Only these folders can be uploaded from. Pick the narrowest set that covers where your generators and exports land — the assistant cannot read anything outside them.",
+      "multiple": true,
+      "required": true,
+      "default": ["${HOME}/Pictures", "${HOME}/Downloads"]
+    }
+  },
+  "compatibility": {
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}
