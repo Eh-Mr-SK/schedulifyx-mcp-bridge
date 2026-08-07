@@ -1,0 +1,51 @@
+# Publish to npm using Trusted Publishing (OIDC) — no npm token anywhere.
+#
+# npm is restricting tokens that bypass 2FA (accounts Aug 2026, direct publishing
+# Jan 2027), so a stored NPM_TOKEN is a dead end. Trusted Publishing has GitHub
+# mint a short-lived OIDC credential per run instead, which npm verifies against
+# the publisher configured on the package. Nothing long-lived exists to leak.
+#
+# The trust is registered on npmjs.com under the package's Settings → Trusted
+# Publisher, and must name this exact repository and this exact filename.
+
+name: Publish to npm
+
+on:
+  # Publishing on a release rather than on every push keeps the version bump and
+  # the publish the same deliberate act.
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Required: without this GitHub will not mint the OIDC token and the
+      # publish falls back to looking for a credential that is not there.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # OIDC publishing needs npm 11.5.1 or newer; the version bundled with the
+      # runner's Node lags behind, so upgrade explicitly rather than hoping.
+      - name: Use an npm that supports OIDC
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts || npm install --ignore-scripts
+
+      - name: Build
+        run: npm run build --if-present
+
+      # No NODE_AUTH_TOKEN: the OIDC credential is discovered automatically.
+      - name: Publish
+        run: npm publish --provenance --access public
